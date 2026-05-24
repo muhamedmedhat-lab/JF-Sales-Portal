@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a2240">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Ithmaar — Auto Loan Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --navy: #0a2240;
+    --navy-mid: #133260;
+    --navy-light: #1e4a8a;
+    --navy-pale: #e8edf5;
+    --gold: #c8972b;
+    --gold-light: #e8b84b;
+    --gold-pale: #fdf6e8;
+    --green: #0d7a55;
+    --green-pale: #e4f5ee;
+    --red: #c0392b;
+    --red-pale: #fdecea;
+    --amber: #b45309;
+    --amber-pale: #fffbeb;
+    --gray-50: #f8f9fb;
+    --gray-100: #f1f3f7;
+    --gray-200: #e2e6ed;
+    --gray-400: #9aa0ab;
+    --gray-600: #5a6272;
+    --gray-800: #2c3345;
+    --white: #ffffff;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --shadow-card: 0 1px 4px rgba(10,34,64,0.07), 0 4px 16px rgba(10,34,64,0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    position: sticky; top: 0; z-index: 200;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 34px; height: 34px;
+    background: var(--gold);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: var(--navy);
+  }
+  .logo-text { color: var(--white); }
+  .logo-text .main { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
+  .logo-text .sub { font-size: 10px; color: rgba(255,255,255,0.55); letter-spacing: .8px; text-transform: uppercase; margin-top: 1px; }
+  .header-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: .6px;
+    text-transform: uppercase; color: var(--gold-light);
+    border: 1px solid rgba(200,151,43,0.35);
+    padding: 3px 10px; border-radius: 100px;
+  }
+
+  /* ── LAYOUT ── */
+  main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+  /* ── STEP INDICATOR ── */
+  .steps {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 1.5rem;
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .step {
+    flex: 1; padding: 12px 8px; text-align: center;
+    border-right: 1px solid var(--gray-200);
+    transition: background .2s;
+  }
+  .step:last-child { border-right: none; }
+  .step .snum {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--gray-300);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--gray-400);
+    margin-bottom: 4px;
+  }
+  .step .slabel { font-size: 10px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .5px; }
+  .step.active { background: var(--navy-pale); }
+  .step.active .snum { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .step.active .slabel { color: var(--navy); }
+  .step.done .snum { background: var(--green); border-color: var(--green); color: var(--white); }
+  .step.done .slabel { color: var(--green); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-card);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .card-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--navy-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600;
+    color: var(--navy); letter-spacing: .2px;
+  }
+  .card-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .5px;
+    color: var(--gray-600);
+  }
+
+  select, input[type="number"] {
+    height: 44px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 0 13px;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px; color: var(--gray-800);
+    background: var(--white);
+    outline: none;
+    transition: border-color .18s, box-shadow .18s;
+    width: 100%;
+    appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa0ab' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    padding-right: 36px; cursor: pointer;
+  }
+  select:focus, input[type="number"]:focus {
+    border-color: var(--navy-light);
+    box-shadow: 0 0 0 3px rgba(30,74,138,.1);
+  }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .input-wrap { position: relative; }
+  .input-wrap .prefix {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; font-weight: 600; color: var(--gray-400);
+    pointer-events: none;
+  }
+  .input-wrap input { padding-left: 46px; }
+
+  .divider { height: 1px; background: var(--gray-100); margin: 1.1rem 0; }
+
+  /* ── CRITERIA GRID ── */
+  .criteria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+  }
+  .ci {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
+  }
+  .ci-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); margin-bottom: 4px; }
+  .ci-value { font-size: 13px; font-weight: 500; color: var(--navy); font-family: 'IBM Plex Mono', monospace; }
+
+  .condition-box {
+    background: var(--gold-pale);
+    border: 1px solid rgba(200,151,43,.25);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px; line-height: 1.65; color: #7a5c10;
+    margin-top: 8px;
+  }
+  .condition-box strong { font-weight: 600; }
+
+  .income-method-box {
+    background: var(--navy-pale);
+    border: 1px solid rgba(30,74,138,.18);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px; line-height: 1.65; color: var(--navy-mid);
+    margin-top: 8px;
+  }
+  .income-method-box strong { font-weight: 600; color: var(--navy); }
+
+  /* ── TENOR CHIPS ── */
+  .tenor-wrap { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 6px; }
+  .tenor-chip {
+    padding: 7px 15px;
+    border-radius: 100px;
+    border: 1.5px solid var(--gray-200);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; background: var(--white);
+    color: var(--gray-600); transition: all .15s;
+    font-family: 'Sora', sans-serif;
+  }
+  .tenor-chip:hover { border-color: var(--navy-light); color: var(--navy); }
+  .tenor-chip.active { background: var(--navy); border-color: var(--navy); color: var(--white); }
+
+  /* ── DP BAR ── */
+  .dp-bar-wrap { margin-top: 10px; }
+  .dp-bar {
+    height: 7px; border-radius: 100px;
+    overflow: hidden; display: flex;
+    background: var(--gray-100);
+  }
+  .dp-seg { background: var(--gold); transition: width .3s; }
+  .loan-seg { background: var(--navy-light); transition: width .3s; }
+  .dp-legend { display: flex; gap: 1.25rem; margin-top: 6px; }
+  .dp-legend span { font-size: 11px; color: var(--gray-600); display: flex; align-items: center; gap: 5px; }
+  .dp-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  /* ── CALCULATE BUTTON ── */
+  .btn-calc {
+    width: 100%; height: 48px;
+    background: var(--gold); color: var(--navy);
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'Sora', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: .3px;
+    cursor: pointer; margin-top: 1.25rem;
+    transition: background .15s, transform .1s;
+  }
+  .btn-calc:hover { background: var(--gold-light); }
+  .btn-calc:active { transform: scale(.99); }
+
+  /* ── WARNING / ELIGIBILITY ── */
+  .alert {
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    font-size: 12.5px; line-height: 1.6;
+    display: flex; gap: 9px; align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  .alert.error { background: var(--red-pale); border: 1px solid #f5c0bd; color: var(--red); }
+  .alert.warn  { background: var(--amber-pale); border: 1px solid #fcd08a; color: var(--amber); }
+  .alert.ok    { background: var(--green-pale); border: 1px solid #9fdfc5; color: var(--green); }
+  .alert-icon { font-size: 16px; flex-shrink: 0; line-height: 1.4; }
+
+  /* ── RESULT HERO ── */
+  .result-hero { text-align: center; padding: .75rem 0 .5rem; }
+  .status-pill {
+    display: inline-block; padding: 4px 14px;
+    border-radius: 100px; font-size: 11px; font-weight: 700;
+    letter-spacing: .7px; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .status-pill.ok { background: var(--green-pale); color: var(--green); }
+  .status-pill.fail { background: var(--red-pale); color: var(--red); }
+
+  .hero-amount {
+    font-size: 38px; font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--navy); line-height: 1.1;
+  }
+  .hero-label { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+
+  /* ── METRICS ROW ── */
+  .metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-top: 1.25rem;
+  }
+  .metric {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    border-radius: var(--radius-sm);
+    padding: 11px 12px; text-align: center;
+  }
+  .metric-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-400); margin-bottom: 5px; }
+  .metric-value { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500; color: var(--navy); }
+
+  /* ── SCHEDULE ── */
+  .sched-head {
+    display: grid; grid-template-columns: 52px 1fr 1fr 1fr;
+    padding: 7px 12px;
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .4px; color: var(--gray-400);
+  }
+  .sched-row {
+    display: grid; grid-template-columns: 52px 1fr 1fr 1fr;
+    padding: 10px 12px; border-radius: var(--radius-sm);
+    font-size: 12.5px; font-family: 'IBM Plex Mono', monospace;
+    transition: background .15s; cursor: default;
+  }
+  .sched-row:nth-child(odd)  { background: var(--gray-50); }
+  .sched-row:hover { background: var(--gold-pale); }
+  .yr-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 20px; border-radius: 5px;
+    background: var(--navy); color: var(--white);
+    font-size: 11px; font-weight: 600; font-family: 'Sora', sans-serif;
+  }
+
+  /* ── INCOME CALC NOTE ── */
+  .income-result-box {
+    background: var(--navy-pale);
+    border: 1px solid rgba(30,74,138,.18);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px; font-size: 12px; line-height: 1.7;
+    color: var(--navy-mid); margin-top: 8px;
+  }
+  .income-result-box strong { color: var(--navy); font-weight: 600; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 520px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .hero-amount { font-size: 28px; }
+    .header-badge { display: none; }
+    .step .slabel { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">I</div>
+    <div class="logo-text">
+      <div class="main">Ithmaar Finance</div>
+      <div class="sub">Auto Loan Tool</div>
+    </div>
+  </div>
+  <div class="header-badge">Sales Internal</div>
+</header>
+
+<main>
+
+  <!-- Step Indicator -->
+  <div class="steps">
+    <div class="step active" id="step1-ind">
+      <div class="snum">1</div>
+      <div class="slabel">Program</div>
+    </div>
+    <div class="step" id="step2-ind">
+      <div class="snum">2</div>
+      <div class="slabel">Deal</div>
+    </div>
+    <div class="step" id="step3-ind">
+      <div class="snum">3</div>
+      <div class="slabel">Results</div>
+    </div>
+  </div>
+
+  <!-- ── STEP 1: Program Selection ── -->
+  <div class="card" id="card-step1">
+    <div class="card-header">
+      <div class="card-icon">🎯</div>
+      <div>
+        <div class="card-title">Select Program</div>
+        <div class="card-sub">Choose income type and down payment tier</div>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Income Calculation Type</label>
+        <select id="incomeType" onchange="onIncomeChange()">
+          <option value="">— Select type —</option>
+          <option value="iscore">Assumed From I-Score</option>
+          <option value="dp">Assumed From Down Payment (DP)</option>
+          <option value="proof">Actual Verified Income (Income Proof)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Down Payment %</label>
+        <select id="dpTier" onchange="onDpChange()" disabled>
+          <option value="">— Select DP tier —</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="criteriaBlock" style="display:none">
+      <div class="divider"></div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--navy-light);margin-bottom:10px;">Program Criteria</div>
+      <div class="criteria-grid" id="criteriaGrid"></div>
+      <div id="conditionBox" class="condition-box" style="display:none"></div>
+      <div id="incomeMethodBox" class="income-method-box" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Deal Details ── -->
+  <div class="card" id="card-step2" style="display:none">
+    <div class="card-header">
+      <div class="card-icon">🚗</div>
+      <div>
+        <div class="card-title">Enter Deal Details</div>
+        <div class="card-sub">Asset price, loan amount, and tenor</div>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Car / Asset Price (EGP)</label>
+        <div class="input-wrap">
+          <span class="prefix">EGP</span>
+          <input type="number" id="carPrice" placeholder="0" min="0" oninput="onAmountChange()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Down Payment Amount (EGP)</label>
+        <div class="input-wrap">
+          <span class="prefix">EGP</span>
+          <input type="number" id="dpAmount" placeholder="0" min="0" oninput="onDpAmountChange()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Loan Amount (EGP)</label>
+        <div class="input-wrap">
+          <span class="prefix">EGP</span>
+          <input type="number" id="loanAmt" placeholder="0" min="0" oninput="onLoanChange()">
+        </div>
+      </div>
+      <div class="form-group" id="actualDpPctGroup" style="display:none">
+        <label>Actual Down Payment %</label>
+        <div class="input-wrap">
+          <span class="prefix" style="color:var(--navy)">%</span>
+          <input type="number" id="actualDpPct" readonly style="background:var(--gray-50);color:var(--navy-mid);font-family:'IBM Plex Mono',monospace;">
+        </div>
+      </div>
+    </div>
+
+    <div id="dpBarWrap" style="display:none" class="dp-bar-wrap">
+      <div class="dp-bar">
+        <div class="dp-seg" id="dpSeg"></div>
+        <div class="loan-seg" id="loanSeg"></div>
+      </div>
+      <div class="dp-legend">
+        <span><span class="dp-dot" style="background:var(--gold)"></span>Down Payment</span>
+        <span><span class="dp-dot" style="background:var(--navy-light)"></span>Loan</span>
+      </div>
+    </div>
+
+    <div id="incomeEstBox" class="income-result-box" style="display:none"></div>
+
+    <div class="divider"></div>
+    <label style="display:block;margin-bottom:6px;">Tenor (Months)</label>
+    <div class="tenor-wrap" id="tenorWrap"></div>
+
+    <button class="btn-calc" onclick="calculate()">Calculate Installments →</button>
+  </div>
+
+  <!-- ── STEP 3: Results ── -->
+  <div class="card" id="card-step3" style="display:none">
+    <div class="card-header">
+      <div class="card-icon">📊</div>
+      <div>
+        <div class="card-title">Results</div>
+        <div class="card-sub">Installment breakdown and schedule</div>
+      </div>
+    </div>
+
+    <div id="alertBox"></div>
+
+    <div id="resultContent" style="display:none">
+      <div class="result-hero">
+        <div class="status-pill ok" id="statusPill">Eligible</div>
+        <div class="hero-amount" id="heroAmt">EGP 0</div>
+        <div class="hero-label">Monthly Installment</div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Loan Amount</div><div class="metric-value" id="m-loan">—</div></div>
+        <div class="metric"><div class="metric-label">Down Payment</div><div class="metric-value" id="m-dp">—</div></div>
+        <div class="metric"><div class="metric-label">Total Repayment</div><div class="metric-value" id="m-total">—</div></div>
+        <div class="metric"><div class="metric-label">Tenor</div><div class="metric-value" id="m-tenor">—</div></div>
+        <div class="metric"><div class="metric-label">Flat Rate</div><div class="metric-value" id="m-rate">—</div></div>
+        <div class="metric"><div class="metric-label">Admin Fees</div><div class="metric-value" id="m-admin">—</div></div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--navy-light);margin-bottom:8px;">Annual Schedule</div>
+      <div class="sched-head"><div>Year</div><div>Annual Total</div><div>Monthly</div><div>Balance</div></div>
+      <div id="schedRows"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════
+   PRODUCT DATA — from Product_Criteria.xlsx
+   ══════════════════════════════════════════════════ */
+const PROGRAMS = {
+  iscore: {
+    label: 'Assumed From I-Score',
+    carType: 'Used OR New',
+    tiers: {
+      '0':  { dp: 0,    maxLoan: 4000000, condition: 'I-Score report must have unsecured credit facilities of at least EGP 1,000,000 with minimum 12 MOB history.', area: 'A, B' },
+      '10': { dp: 0.10, maxLoan: 4000000, condition: 'I-Score report must have unsecured credit facilities of at least EGP 750,000. Minimum 6 MOB history.', area: null },
+      '20': { dp: 0.20, maxLoan: 5000000, condition: 'I-Score report must have unsecured credit facilities of at least EGP 500,000. Minimum 6 MOB history.', area: 'A, B, C' },
+      '30': { dp: 0.30, maxLoan: 6000000, condition: null, area: null },
+      '40': { dp: 0.40, maxLoan: 7000000, condition: null, area: null },
+      '50': { dp: 0.50, maxLoan: 8000000, condition: null, area: null },
+    },
+    incomeMethodLabel: null,
+    incomeMethodDesc: 'Total unsecured installments in I-Score represent 35% of the assumed monthly income.\nFormula: Total Monthly Installments ÷ 0.35 = Assumed Monthly Income',
+    adminFee: 0.02,
+  },
+  dp: {
+    label: 'Assumed From Down Payment',
+    carType: 'Used OR New',
+    tiers: {
+      '10': { dp: 0.10, maxLoan: 2000000, formula: 'DP/1 Y/10%',   divisor: 1,   area: 'A, B' },
+      '20': { dp: 0.20, maxLoan: 2000000, formula: 'DP/1.5 Y/10%', divisor: 1.5, area: null },
+      '30': { dp: 0.30, maxLoan: 3500000, formula: 'DP/3 Y/10%',   divisor: 3,   area: 'A, B, C' },
+      '40': { dp: 0.40, maxLoan: 4500000, formula: 'DP/3 Y/10%',   divisor: 3,   area: null },
+      '50': { dp: 0.50, maxLoan: 6000000, formula: 'DP/3 Y/10%',   divisor: 3,   area: null },
+    },
+    adminFee: 0.02,
+  },
+  proof: {
+    label: 'Actual Verified Income (Income Proof)',
+    carType: 'Used OR New',
+    tiers: {
+      '0':  { dp: 0,    maxLoan: 15000000, area: 'A, B, C' },
+      '10': { dp: 0.10, maxLoan: null, area: null },
+      '20': { dp: 0.20, maxLoan: null, area: null },
+      '30': { dp: 0.30, maxLoan: null, area: null },
+      '40': { dp: 0.40, maxLoan: null, area: null },
+      '50': { dp: 0.50, maxLoan: null, area: null },
+    },
+    incomeMethodDesc: 'Income is calculated from verified documents: HR letter or 3-month bank statement (salaried) / 6-month bank statement (self-employed).',
+    adminFee: 0.02,
+  },
+};
+
+/* Flat rates from pricing sheet — per year bucket */
+const FLAT_RATES = {
+  1: 0.16725,
+  2: 0.168239,
+  3: 0.173198,
+  4: 0.179006,
+  5: 0.185004,
+};
+
+/* Tenor options for Auto (months) */
+const TENOR_OPTIONS = [12, 24, 36, 48, 60, 72, 84];
+
+let state = {
+  incomeType: null,
+  dpTierKey: null,
+  carPrice: 0,
+  dpAmt: 0,
+  loanAmt: 0,
+  tenor: null,
+};
+
+/* ── helpers ── */
+const $ = id => document.getElementById(id);
+function fmt(n) { return new Intl.NumberFormat('en-EG').format(Math.round(n)); }
+function pct(n) { return (n * 100).toFixed(0) + '%'; }
+function pct2(n) { return (n * 100).toFixed(2) + '%'; }
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const el = $('step'+i+'-ind');
+    el.className = 'step' + (i === n ? ' active' : (i < n ? ' done' : ''));
+  });
+}
+
+/* ── Step 1: Income type change ── */
+function onIncomeChange() {
+  const val = $('incomeType').value;
+  state.incomeType = val || null;
+  state.dpTierKey = null;
+  $('criteriaBlock').style.display = 'none';
+  $('card-step2').style.display = 'none';
+  $('card-step3').style.display = 'none';
+  resetResults();
+
+  const dpSel = $('dpTier');
+  dpSel.innerHTML = '<option value="">— Select DP tier —</option>';
+  dpSel.disabled = true;
+
+  if (!val) return;
+
+  const prog = PROGRAMS[val];
+  const tierKeys = Object.keys(prog.tiers);
+  tierKeys.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k + '% Down Payment';
+    dpSel.appendChild(opt);
+  });
+  dpSel.disabled = false;
+  setStep(1);
+}
+
+/* ── Step 1: DP tier change ── */
+function onDpChange() {
+  const dpKey = $('dpTier').value;
+  state.dpTierKey = dpKey || null;
+  $('card-step2').style.display = 'none';
+  $('card-step3').style.display = 'none';
+  resetResults();
+
+  if (!dpKey || !state.incomeType) {
+    $('criteriaBlock').style.display = 'none';
+    return;
+  }
+
+  const prog = PROGRAMS[state.incomeType];
+  const tier = prog.tiers[dpKey];
+  renderCriteria(prog, tier, dpKey);
+  $('criteriaBlock').style.display = 'block';
+  buildDealCard(prog, tier, dpKey);
+  $('card-step2').style.display = 'block';
+  setStep(2);
+}
+
+function renderCriteria(prog, tier, dpKey) {
+  const grid = $('criteriaGrid');
+  grid.innerHTML = '';
+  const items = [
+    ['Income Type', prog.label],
+    ['Car Type', prog.carType || 'Used OR New'],
+    ['Down Payment', dpKey + '%'],
+    ['Max Loan Amount', tier.maxLoan ? 'EGP ' + fmt(tier.maxLoan) : 'Per income capacity'],
+    ['Resident Area', tier.area || 'All areas'],
+    ['Admin Fees', pct(prog.adminFee)],
+  ];
+  items.forEach(([l, v]) => {
+    grid.innerHTML += `<div class="ci"><div class="ci-label">${l}</div><div class="ci-value">${v}</div></div>`;
+  });
+
+  /* condition (I-Score) */
+  const cb = $('conditionBox');
+  if (tier.condition) {
+    cb.innerHTML = '<strong>📋 I-Score Condition:</strong> ' + tier.condition;
+    cb.style.display = 'block';
+  } else { cb.style.display = 'none'; }
+
+  /* income method */
+  const ib = $('incomeMethodBox');
+  if (state.incomeType === 'iscore' && prog.incomeMethodDesc) {
+    ib.innerHTML = '<strong>📐 Income Calculation:</strong><br>' + prog.incomeMethodDesc.replace('\n','<br>');
+    ib.style.display = 'block';
+  } else if (state.incomeType === 'dp' && tier.formula) {
+    ib.innerHTML = `<strong>📐 Income Methodology:</strong> ${tier.formula}<br>
+      Assumed Monthly Income = Down Payment ÷ ${tier.divisor} years ÷ 10%`;
+    ib.style.display = 'block';
+  } else if (state.incomeType === 'proof' && prog.incomeMethodDesc) {
+    ib.innerHTML = '<strong>📋 Income Verification:</strong> ' + prog.incomeMethodDesc;
+    ib.style.display = 'block';
+  } else { ib.style.display = 'none'; }
+}
+
+function buildDealCard(prog, tier, dpKey) {
+  /* pre-fill DP % hint */
+  $('actualDpPctGroup').style.display = 'none';
+  $('dpBarWrap').style.display = 'none';
+  $('incomeEstBox').style.display = 'none';
+  /* clear old values */
+  $('carPrice').value = '';
+  $('dpAmount').value = '';
+  $('loanAmt').value = '';
+  state.carPrice = state.dpAmt = state.loanAmt = 0;
+  state.tenor = null;
+  /* reset tenor chips */
+  buildTenorChips();
+}
+
+function buildTenorChips() {
+  const wrap = $('tenorWrap');
+  wrap.innerHTML = '';
+  TENOR_OPTIONS.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'tenor-chip';
+    btn.dataset.m = m;
+    const y = m / 12;
+    btn.textContent = m + 'M' + (Number.isInteger(y) ? ' · ' + y + 'yr' : '');
+    btn.onclick = () => {
+      document.querySelectorAll('.tenor-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      state.tenor = m;
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+/* ── Step 2: amount inputs ── */
+function syncBar() {
+  const p = state.carPrice, d = state.dpAmt, l = state.loanAmt;
+  if (p > 0 && d >= 0 && l > 0 && d + l <= p + 1) {
+    const dpPct = d / p, lPct = l / p;
+    $('dpSeg').style.width = (dpPct * 100).toFixed(1) + '%';
+    $('loanSeg').style.width = (lPct * 100).toFixed(1) + '%';
+    $('dpBarWrap').style.display = 'block';
+    $('actualDpPct').value = (dpPct * 100).toFixed(1);
+    $('actualDpPctGroup').style.display = 'flex';
+  } else {
+    $('dpBarWrap').style.display = 'none';
+    $('actualDpPctGroup').style.display = 'none';
+  }
+  updateIncomeEst();
+}
+
+function onAmountChange() {
+  state.carPrice = parseFloat($('carPrice').value) || 0;
+  /* auto-calc DP from tier if not yet entered */
+  const dpKey = parseInt(state.dpTierKey) || 0;
+  if (dpKey > 0 && state.carPrice > 0 && !$('dpAmount').value) {
+    const autoDP = state.carPrice * (dpKey / 100);
+    $('dpAmount').value = Math.round(autoDP);
+    state.dpAmt = autoDP;
+    state.loanAmt = state.carPrice - autoDP;
+    $('loanAmt').value = Math.round(state.loanAmt);
+  }
+  syncBar();
+}
+
+function onDpAmountChange() {
+  state.dpAmt = parseFloat($('dpAmount').value) || 0;
+  if (state.carPrice > 0) {
+    state.loanAmt = state.carPrice - state.dpAmt;
+    $('loanAmt').value = state.loanAmt > 0 ? Math.round(state.loanAmt) : '';
+  }
+  syncBar();
+}
+
+function onLoanChange() {
+  state.loanAmt = parseFloat($('loanAmt').value) || 0;
+  if (state.carPrice > 0) {
+    state.dpAmt = state.carPrice - state.loanAmt;
+    $('dpAmount').value = state.dpAmt >= 0 ? Math.round(state.dpAmt) : '';
+  }
+  syncBar();
+}
+
+function updateIncomeEst() {
+  const box = $('incomeEstBox');
+  const dp = state.dpAmt, loan = state.loanAmt;
+  if (!state.incomeType || dp <= 0) { box.style.display = 'none'; return; }
+
+  if (state.incomeType === 'dp' && state.dpTierKey) {
+    const prog = PROGRAMS.dp;
+    const tier = prog.tiers[state.dpTierKey];
+    if (!tier) { box.style.display = 'none'; return; }
+    const income = dp / tier.divisor / 0.10;
+    const maxInstallment = income * 0.40;
+    box.innerHTML = `<strong>Estimated Monthly Income (DP Method):</strong> EGP ${fmt(income)}<br>
+      Max allowable monthly installment (40% DBR): <strong>EGP ${fmt(maxInstallment)}</strong>`;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+/* ── Calculate ── */
+function resetResults() {
+  $('alertBox').innerHTML = '';
+  $('resultContent').style.display = 'none';
+}
+
+function calculate() {
+  const prog = PROGRAMS[state.incomeType];
+  if (!prog) return;
+  const tier = prog.tiers[state.dpTierKey];
+  if (!tier) return;
+
+  const price    = parseFloat($('carPrice').value) || 0;
+  const dpAmt    = parseFloat($('dpAmount').value) || 0;
+  const loanAmt  = parseFloat($('loanAmt').value)  || 0;
+  const tenor    = state.tenor;
+
+  $('card-step3').style.display = 'block';
+  $('alertBox').innerHTML = '';
+  $('resultContent').style.display = 'none';
+  setStep(3);
+
+  const errs = [];
+  if (!tenor)      errs.push('Please select a tenor.');
+  if (price <= 0)  errs.push('Please enter a valid asset price.');
+  if (loanAmt <= 0) errs.push('Please enter a valid loan amount.');
+  if (price > 0 && loanAmt > price) errs.push('Loan amount cannot exceed the asset price.');
+
+  /* DP check */
+  if (price > 0 && dpAmt >= 0 && state.dpTierKey !== null) {
+    const requiredDP = price * (parseInt(state.dpTierKey) / 100);
+    if (dpAmt < requiredDP - 1) {
+      errs.push(`Required down payment for this program is ${state.dpTierKey}% = EGP ${fmt(requiredDP)}. Current DP is EGP ${fmt(dpAmt)}.`);
+    }
+  }
+
+  /* Max loan check */
+  if (tier.maxLoan && loanAmt > tier.maxLoan) {
+    errs.push(`Loan amount EGP ${fmt(loanAmt)} exceeds the maximum allowed for this program: EGP ${fmt(tier.maxLoan)}.`);
+  }
+
+  if (errs.length > 0) {
+    $('alertBox').innerHTML = errs.map(e =>
+      `<div class="alert error"><span class="alert-icon">⛔</span><span>${e}</span></div>`
+    ).join('');
+    $('card-step3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  /* ── flat rate ── */
+  const yrs = Math.round(tenor / 12);
+  const flatKey = Math.min(yrs, Math.max(...Object.keys(FLAT_RATES).map(Number)));
+  const flatRate = FLAT_RATES[flatKey];
+
+  const interest       = loanAmt * flatRate;
+  const totalRepay     = loanAmt + interest;
+  const monthly        = totalRepay / tenor;
+  const adminFees      = loanAmt * prog.adminFee;
+
+  /* populate metrics */
+  $('heroAmt').textContent   = 'EGP ' + fmt(monthly);
+  $('m-loan').textContent    = 'EGP ' + fmt(loanAmt);
+  $('m-dp').textContent      = 'EGP ' + fmt(dpAmt);
+  $('m-total').textContent   = 'EGP ' + fmt(totalRepay);
+  $('m-tenor').textContent   = tenor + ' months';
+  $('m-rate').textContent    = pct2(flatRate);
+  $('m-admin').textContent   = 'EGP ' + fmt(adminFees);
+
+  /* schedule */
+  const schedRows = $('schedRows');
+  schedRows.innerHTML = '';
+  let balance = loanAmt;
+  const annualPrincipal = loanAmt / yrs;
+  for (let y = 1; y <= yrs; y++) {
+    const months = (y === yrs) ? (tenor - (yrs - 1) * 12) : 12;
+    const yearTotal = monthly * months;
+    balance = Math.max(0, loanAmt - annualPrincipal * y);
+    schedRows.innerHTML += `
+      <div class="sched-row">
+        <div><span class="yr-badge">${y}</span></div>
+        <div>EGP ${fmt(yearTotal)}</div>
+        <div>EGP ${fmt(monthly)}</div>
+        <div>EGP ${fmt(balance)}</div>
+      </div>`;
+  }
+
+  $('alertBox').innerHTML = `<div class="alert ok"><span class="alert-icon">✅</span><span>Deal is within program limits. Monthly installment calculated successfully.</span></div>`;
+  $('resultContent').style.display = 'block';
+  $('card-step3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
